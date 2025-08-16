@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mattia Ahmet Minguzi Destek Sayfası</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #counter {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+        #message {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #d33;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mattia Ahmet Minguzi'ye Destek Ol!</h1>
+    <button id="supportButton" onclick="support()">Destek Ol</button>
+    <div id="counter">Destek Sayısı: 0</div>
+    <div id="message"></div>
+
+    <script>
+        // Sayaç değerini localStorage'dan al veya sıfırla
+        let supportCount = localStorage.getItem('supportCount') ? parseInt(localStorage.getItem('supportCount')) : 0;
+        let hasSupported = localStorage.getItem('hasSupported') === 'true';
+
+        // Sayacı güncelle
+        document.getElementById('counter').textContent = `Destek Sayısı: ${supportCount}`;
+
+        // Buton durumunu kontrol et
+        const button = document.getElementById('supportButton');
+        if (hasSupported) {
+            button.disabled = true;
+        }
+
+        function support() {
+            if (!hasSupported) {
+                // Sayacı artır ve localStorage'a kaydet
+                supportCount++;
+                localStorage.setItem('supportCount', supportCount);
+                localStorage.setItem('hasSupported', 'true');
+                hasSupported = true;
+
+                // Sayacı güncelle ve butonu devre dışı bırak
+                document.getElementById('counter').textContent = `Destek Sayısı: ${supportCount}`;
+                button.disabled = true;
+                document.getElementById('message').textContent = 'Teşekkürler, desteğiniz kaydedildi!';
+            } else {
+                document.getElementById('message').textContent = 'Zaten destek verdiniz!';
+            }
+        }
+    </script>
+</body>
+</html>
