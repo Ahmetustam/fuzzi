@@ -54,6 +54,12 @@
             font-weight: bold;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
         }
+        #supporters {
+            margin-top: 20px;
+            font-size: 1.1em;
+            max-width: 500px;
+            text-align: center;
+        }
         #message {
             margin-top: 15px;
             font-size: 1.1em;
@@ -66,32 +72,80 @@
     <h1>Mattia Ahmet Minguzi'ye Destek Ol!</h1>
     <button id="supportButton" onclick="support()">Mattia Ahmet Minguzi İçin Adalet</button>
     <div id="counter">Destek Sayısı: 0</div>
+    <div id="supporters">Destek Verenler: Henüz kimse destek vermedi.</div>
     <div id="message"></div>
 
-    <script>
-        // Sayaç değerini localStorage'dan al veya sıfırla
-        let supportCount = localStorage.getItem('supportCount') ? parseInt(localStorage.getItem('supportCount')) : 0;
+    <script type="module">
+        // Firebase SDK'larını yükle
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, onValue, set, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        // Firebase yapılandırması
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzLsh3t-TDIGqrFzrTugLBrZmRXVDS8-c",
+            authDomain: "yata-f50f7.firebaseapp.com",
+            databaseURL: "https://yata-f50f7-default-rtdb.firebaseio.com",
+            projectId: "yata-f50f7",
+            storageBucket: "yata-f50f7.firebasestorage.app",
+            messagingSenderId: "427391604806",
+            appId: "1:427391604806:web:261ae7fb2571d45e0c5247",
+            measurementId: "G-W147GQK0SW"
+        };
+
+        // Firebase'i başlat
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Sayaç ve destek verenler için referanslar
+        const counterRef = ref(db, 'support/count');
+        const supportersRef = ref(db, 'support/supporters');
+
+        // Yerel depolama ile kullanıcıyı takip et
         let hasSupported = localStorage.getItem('hasSupported') === 'true';
-
-        // Sayacı güncelle
-        document.getElementById('counter').textContent = `Destek Sayısı: ${supportCount}`;
-
-        // Buton durumunu kontrol et
         const button = document.getElementById('supportButton');
         if (hasSupported) {
             button.disabled = true;
         }
 
+        // Sayaç ve destek verenleri güncelle
+        onValue(counterRef, (snapshot) => {
+            const count = snapshot.val() || 0;
+            document.getElementById('counter').textContent = `Destek Sayısı: ${count}`;
+        });
+
+        onValue(supportersRef, (snapshot) => {
+            const supporters = snapshot.val();
+            if (supporters) {
+                const supporterList = Object.values(supporters).map(s => s.name).join(', ');
+                document.getElementById('supporters').textContent = `Destek Verenler: ${supporterList || 'Henüz kimse destek vermedi.'}`;
+            } else {
+                document.getElementById('supporters').textContent = 'Destek Verenler: Henüz kimse destek vermedi.';
+            }
+        });
+
+        // Destek fonksiyonu
         function support() {
             if (!hasSupported) {
-                // Sayacı artır ve localStorage'a kaydet
-                supportCount++;
-                localStorage.setItem('supportCount', supportCount);
+                // Kullanıcıdan isim al
+                const name = prompt('Lütfen isminizi girin:');
+                if (!name) {
+                    document.getElementById('message').textContent = 'İsim girmeniz gerekiyor!';
+                    return;
+                }
+
+                // Firebase'de sayacı güncelle
+                onValue(counterRef, (snapshot) => {
+                    const count = snapshot.val() || 0;
+                    set(counterRef, count + 1);
+                }, { onlyOnce: true });
+
+                // Destek vereni kaydet
+                const newSupporterRef = push(supportersRef);
+                set(newSupporterRef, { name: name });
+
+                // Kullanıcıyı işaretle ve butonu devre dışı bırak
                 localStorage.setItem('hasSupported', 'true');
                 hasSupported = true;
-
-                // Sayacı güncelle ve butonu devre dışı bırak
-                document.getElementById('counter').textContent = `Destek Sayısı: ${supportCount}`;
                 button.disabled = true;
                 document.getElementById('message').textContent = 'Teşekkürler, desteğiniz kaydedildi!';
             } else {
